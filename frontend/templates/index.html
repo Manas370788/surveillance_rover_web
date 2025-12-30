@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Surveillance Rover</title>
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+
+<h2>SURVEILLANCE ROVER – WEB SIMULATION</h2>
+
+<canvas id="area" width="600" height="300"></canvas>
+
+<p id="status">System Ready</p>
+<p id="sensors">Motion: -- | Fire: -- | CO: --</p>
+
+<div id="alertBox">STATUS: SAFE</div>
+
+
+<div class="controls">
+  <button onclick="move('up')">⬆ FRONT</button><br>
+
+  <button onclick="move('left')">⬅ LEFT</button>
+  <button onclick="move('right')">➡ RIGHT</button><br>
+
+  <button onclick="move('down')">⬇ BACK</button><br><br>
+
+  <button onclick="scan()">SCAN AREA</button>
+  <button onclick="stop()">STOP</button>
+</div>
+
+
+<audio id="alarm" src="/static/alert.wav"></audio>
+
+<script src="/static/script.js"></script>
+</body>
+</html>
