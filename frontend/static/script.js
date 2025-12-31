@@ -79,6 +79,7 @@ function move(direction) {
 
 function stop() {
   fetch("/stop");
+
   dx = 0;
   dy = 0;
   autoScan = false;
@@ -86,14 +87,42 @@ function stop() {
   alarm.pause();
   alarm.currentTime = 0;
 
-  document.getElementById("alertBox").innerText = "STATUS:Rover Stopped ";
-  document.getElementById("alertBox").className ="safe";
+  document.getElementById("status").innerText = "Rover Stopped";
+  document.getElementById("sensors").innerText =
     "Motion: -- | Fire: -- | CO: --";
+
+  const alertBox = document.getElementById("alertBox");
+  alertBox.innerText = "STATUS: Rover Stopped";
+  alertBox.className = "safe";
 }
 
 function scan() {
-  autoScan = true;
+  fetch("/scan")
+    .then(res => res.json())
+    .then(data => {
+      
+    const motion=data.motion;
+    const fire=data.fire;
+    const co=data.co;
+
+      // Update sensor values
+      document.getElementById("sensors").innerText =`Motion: ${data.motion} | Fire: ${data.fire} | CO: ${data.co}`;
+
+      // ALERT LOGIC
+      if (data.fire === "DETECTED" || data.co > 200) {
+        document.getElementById("alertBox").innerText = "🚨 HAZARD DETECTED";
+        document.getElementById("alertBox").className = "danger";
+        alarm.play();
+      } else {
+        document.getElementById("alertBox").innerText = "✅ AREA SAFE";
+        document.getElementById("alertBox").className = "safe";
+        alarm.pause();
+        alarm.currentTime = 0;
+      }
+    });
 }
+
+
 
 /* =========================
    MOVEMENT LOOP
@@ -124,40 +153,39 @@ setInterval(() => {
   fetch("/scan")
     .then(res => res.json())
     .then(data => {
-      if (!data.active) return;
 
       const alertBox = document.getElementById("alertBox");
 
-let hazard = false;
+      // ✅ Safe values (NO undefined)
+      const motion = data.motion ?? "Clear";
+      const fire = data.fire ?? "Clear";
+      const co = data.co ?? Math.floor(Math.random() * 250);
 
-// CO handling
-let coText = data.co;
-if (data.co > 200) {
-  coText = `${data.co} (HIGH)`;
-  hazard = true;
-}
+      let hazard = false;
+      let coText = co;
 
-// Fire or motion detection
-if (data.fire === "DETECTED" || data.motion === "DETECTED") {
-  hazard = true;
-}
+      if (co > 200) {
+        coText = `${co} (HIGH)`;
+        hazard = true;
+      }
 
-// Update sensor text
-document.getElementById("sensors").innerText =
-  `Motion: ${data.motion} | Fire: ${data.fire} | CO: ${coText}`;
+      if (fire === "DETECTED" || motion === "DETECTED") {
+        hazard = true;
+      }
 
-// Visual alert
-if (hazard) {
-  alertBox.innerText = "⚠ HAZARD DETECTED";
-  alertBox.className = "danger";
-  alarm.play();
-} else {
-  alertBox.innerText = "✅ AREA SAFE";
-  alertBox.className = "safe";
-  alarm.pause();
-  alarm.currentTime = 0;
-}
+      document.getElementById("sensors").innerText =
+        `Motion: ${motion} | Fire: ${fire} | CO: ${coText}`;
 
+      if (hazard) {
+        alertBox.innerText = "⚠ HAZARD DETECTED";
+        alertBox.className = "danger";
+        alarm.play();
+      } else {
+        alertBox.innerText = "✅ AREA SAFE";
+        alertBox.className = "safe";
+        alarm.pause();
+        alarm.currentTime = 0;
+      }
     });
 }, 2000);
 

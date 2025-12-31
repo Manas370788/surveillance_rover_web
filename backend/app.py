@@ -22,20 +22,17 @@ def move():
 @app.route("/stop")
 def stop():
     state["moving"] = False
-    state["scanning"] = False
     return jsonify({"status": "stopped"})
+
 
 @app.route("/scan")
 def scan():
-    if not state["scanning"]:
-        return jsonify({"active": False})
-
     return jsonify({
-        "active": True,
         "motion": random.choice(["DETECTED", "Clear"]),
         "fire": random.choice(["DETECTED", "Clear"]),
         "co": random.randint(50, 300)
     })
+
 
 import os
 
